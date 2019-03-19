@@ -1,0 +1,66 @@
+version: '2'
+
+services:
+  mongo:
+    image: mongo:3.4-jessie
+    ports:
+      - 27017:27017
+    expose:
+      - 27017
+    container_name: mongo
+    hostname: 127.0.0.1
+    network_mode: host
+
+  eureka-server:
+    build: eureka/
+    restart: always
+    network_mode: "host"
+    hostname: localhost
+    ports:
+      - 8761:8761
+
+  config-service:
+    build: config/
+    restart: always
+    network_mode: "host"
+    image: demo-config-service
+    hostname: localhost
+    ports:
+      - 8888:8888
+
+  zuul-apigateway:
+    build: zuul/
+    depends_on:
+      - config-service
+      - food-service
+      - user-service
+    restart: always
+    network_mode: "host"
+
+    hostname: localhost
+    ports:
+      - 8080:8080
+
+  food-service:
+    build: food-service/
+    restart: always
+    network_mode: "host"
+    hostname: localhost
+    ports:
+      - 9098:9098
+    depends_on:
+      - config-service
+      - eureka-server
+      - mongo
+
+
+  user-service:
+    build: user-service/
+    restart: always
+    network_mode: "host"
+    hostname: localhost
+    ports:
+      - 9099:9099
+    depends_on:
+      - config-service
+      - eureka-server
